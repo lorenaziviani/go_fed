@@ -29,3 +29,20 @@ gofed/
 ├── .env.example
 └── go.work
 ```
+
+## Serviço users
+
+Para rodar localmente:
+
+```bash
+cd gofed/services/users
+go run main.go
+```
+
+Para rodar via Docker:
+
+```bash
+cd gofed/services/users
+docker build -t gofed-users .
+docker run -p 8081:8081 gofed-users
+```
