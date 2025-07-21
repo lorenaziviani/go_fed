@@ -25,6 +25,35 @@ func (r *queryResolver) Product(ctx context.Context, id string) (*model.Product,
 	return nil, nil
 }
 
+// __resolveReference is the resolver for the __resolveReference field.
+func (r *Resolver) __resolveReference(ctx context.Context, obj interface{}) (interface{}, error) {
+	// Extrair o ID da referência
+	var id string
+	switch v := obj.(type) {
+	case map[string]interface{}:
+		if idVal, ok := v["id"]; ok {
+			if idStr, ok := idVal.(string); ok {
+				id = idStr
+			}
+		}
+	case *model.Product:
+		id = v.ID
+	}
+
+	if id == "" {
+		return nil, nil
+	}
+
+	// search for the product
+	for _, product := range products {
+		if product.ID == id {
+			return product, nil
+		}
+	}
+
+	return nil, nil
+}
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 

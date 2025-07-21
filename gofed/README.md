@@ -42,6 +42,7 @@ gofed/
 - **Dados mock**: Alice e Bob pré-cadastrados
 - **Health Check**: Endpoint `/healthz` para monitoramento
 - **Logging estruturado**: Logs em JSON com contexto completo
+- **Federation Support**: Diretiva `@key(fields: "id")` e `__resolveReference`
 
 #### Como executar
 
@@ -96,6 +97,7 @@ make run-users
 - **Dados mock**: iPhone, MacBook, Nike, Coffee Maker
 - **Health Check**: Endpoint `/healthz` para monitoramento
 - **Logging estruturado**: Logs em JSON com contexto completo
+- **Federation Support**: Diretiva `@key(fields: "id")` e `__resolveReference`
 
 #### Como executar
 
@@ -144,6 +146,39 @@ make run-products
    ```bash
    curl http://localhost:8082/healthz
    ```
+
+## Federation Support
+
+Ambos os serviços estão preparados para federation com Apollo Gateway:
+
+### Users Service
+
+```graphql
+type User @key(fields: "id") {
+  id: ID!
+  name: String!
+  email: String!
+}
+```
+
+### Products Service
+
+```graphql
+type Product @key(fields: "id") {
+  id: ID!
+  name: String!
+  description: String!
+  price: Float!
+  category: String!
+}
+```
+
+### \_\_resolveReference
+
+Cada serviço implementa a função `__resolveReference` que permite ao Apollo Gateway resolver referências federadas:
+
+- **Users**: Resolve referências por `id` do usuário
+- **Products**: Resolve referências por `id` do produto
 
 ## Endpoints
 

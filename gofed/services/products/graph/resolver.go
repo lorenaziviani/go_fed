@@ -1,6 +1,8 @@
 package graph
 
-import "products/graph/model"
+import (
+	"products/graph/model"
+)
 
 // This file will not be regenerated automatically.
 //
