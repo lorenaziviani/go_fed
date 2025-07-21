@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 	"users/graph/model"
+	"users/metrics"
 )
 
 // UserCache simulates a cache with intentional race condition
@@ -64,6 +65,11 @@ func (c *UserCache) GetUserSafe(id string) (*model.User, bool) {
 	defer c.mu.RUnlock()
 
 	user, exists := c.users[id]
+	if exists {
+		metrics.RecordCacheHit("users")
+	} else {
+		metrics.RecordCacheMiss("users")
+	}
 	return user, exists
 }
 

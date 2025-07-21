@@ -9,6 +9,8 @@ Demonstrar a implementação de **GraphQL Federation** com microsserviços em Go
 - ✅ **Resoluções concorrentes** com WaitGroup, context.Context, canais
 - ✅ **Benchmarks e race detection** para validação de performance e segurança
 - ✅ **Semáforo customizado** para controle de backpressure e limitação de concorrência
+- ✅ **Métricas Prometheus** com contadores de requisições, latência e cache
+- ✅ **Request tracing** com TraceID em logs e headers
 - Simulação de problemas de performance mitigados com paralelismo e cache
 - Federation com Apollo Gateway e diretivas `@key`
 
@@ -23,6 +25,7 @@ Demonstrar a implementação de **GraphQL Federation** com microsserviços em Go
 - **Concurrency Patterns**: WaitGroup, Channels, Context, Semaphore
 - **Testing**: Race detection, Benchmarks, Unit tests
 - **Backpressure Control**: Semáforo customizado com chan struct{}
+- **Observability**: Prometheus metrics, Request tracing, Structured logging
 
 ## 📁 Estrutura do Monorepo
 
@@ -31,6 +34,8 @@ gofed/
 ├── services/
 │   ├── users/          # Serviço de usuários (porta 8081)
 │   └── products/       # Serviço de produtos (porta 8082)
+├── shared/
+│   └── metrics/        # Pacote compartilhado de métricas
 ├── gateway/            # Apollo Federation Gateway (porta 4000)
 ├── docs/              # Documentação e diagramas
 ├── examples/          # Exemplos de queries GraphQL
@@ -255,6 +260,8 @@ curl -X POST http://localhost:4000/ \
 | **Products Health**    | `http://localhost:8082/healthz` | Health check         |
 | **Apollo Gateway**     | `http://localhost:4000/`        | Federation endpoint  |
 | **GraphQL Playground** | `http://localhost:4000/`        | Interface interativa |
+| **Users Metrics**      | `http://localhost:8081/metrics` | Prometheus metrics   |
+| **Products Metrics**   | `http://localhost:8082/metrics` | Prometheus metrics   |
 
 ## 🔑 Federation Features
 
@@ -374,6 +381,78 @@ make test-semaphore-stats
 
 # Testar performance
 make test-semaphore-performance
+```
+
+## 📊 Métricas e Observabilidade
+
+### Métricas Prometheus
+
+Cada serviço expõe métricas em `/metrics` com os seguintes indicadores:
+
+#### Contadores de Requisições
+
+- `graphql_requests_total` - Total de requisições por serviço, endpoint e tipo de operação
+- `graphql_errors_total` - Total de erros por serviço e tipo
+- `cache_hits_total` - Hits no cache por serviço
+- `cache_misses_total` - Misses no cache por serviço
+
+#### Histogramas de Latência
+
+- `graphql_request_duration_seconds` - Duração das requisições em segundos
+
+#### Gauges de Estado
+
+- `graphql_active_requests` - Número de requisições ativas
+- `semaphore_current` - Goroutines atuais usando o semáforo
+- `semaphore_max` - Máximo de goroutines permitidas
+
+### Request Tracing
+
+- **TraceID**: Gerado automaticamente ou recebido via header `X-Trace-ID`
+- **Logs Estruturados**: Incluem TraceID em todas as entradas
+- **Headers de Resposta**: TraceID retornado em `X-Trace-ID`
+
+### Exemplo de Métricas
+
+```bash
+# Ver métricas do Users Service
+curl http://localhost:8081/metrics
+
+# Ver métricas do Products Service
+curl http://localhost:8082/metrics
+
+# Exemplo de saída
+# HELP graphql_requests_total Total de requisições GraphQL por serviço e endpoint
+# TYPE graphql_requests_total counter
+graphql_requests_total{service="users",endpoint="/query",operation_type="query"} 42
+
+# HELP graphql_request_duration_seconds Duração das requisições GraphQL em segundos
+# TYPE graphql_request_duration_seconds histogram
+graphql_request_duration_seconds_bucket{service="users",endpoint="/query",operation_type="query",le="0.1"} 35
+```
+
+### Middleware de Observabilidade
+
+```go
+// Chain de middleware: Trace -> Metrics -> Logging
+handlerWithMiddleware := metrics.TraceMiddleware(
+    metrics.MetricsMiddleware("users")(
+        middleware.LoggingMiddleware(logger)(mux),
+    ),
+)
+```
+
+### Logs com TraceID
+
+```json
+{
+  "level": "info",
+  "msg": "Request started",
+  "method": "POST",
+  "path": "/query",
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "time": "2024-01-15T10:30:00Z"
+}
 ```
 
 ## 📊 Benchmark e Race Detection

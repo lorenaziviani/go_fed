@@ -8,8 +8,11 @@ import (
 	"users/logger"
 	"users/middleware"
 
+	"users/metrics"
+
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const defaultPort = "8081"
@@ -34,13 +37,18 @@ func main() {
 
 	mux.HandleFunc("/query", srv.ServeHTTP)
 	mux.HandleFunc("/healthz", handlers.HealthHandler(logger))
+	mux.Handle("/metrics", promhttp.Handler())
 
 	if os.Getenv("GRAPHQL_PLAYGROUND_ENABLED") != "false" {
 		mux.HandleFunc("/", playground.Handler("GraphQL playground", "/query"))
 	}
 
-	// Logging middleware
-	handlerWithLogging := middleware.LoggingMiddleware(logger)(mux)
+	// Middleware chain: Trace -> Metrics -> Logging
+	handlerWithMiddleware := metrics.TraceMiddleware(
+		metrics.MetricsMiddleware("users")(
+			middleware.LoggingMiddleware(logger)(mux),
+		),
+	)
 
 	logger.WithFields(map[string]interface{}{
 		"port": port,
@@ -48,12 +56,14 @@ func main() {
 			"http://localhost:" + port + "/ (GraphQL Playground)",
 			"http://localhost:" + port + "/query (GraphQL Query)",
 			"http://localhost:" + port + "/healthz (Health Check)",
+			"http://localhost:" + port + "/metrics (Prometheus Metrics)",
 		},
 		"cache_max_size": resolver.Cache().Size(),
 		"cache_ttl":      "5m",
-	}).Info("Users service starting with cache")
+		"features":       []string{"cache", "metrics", "tracing"},
+	}).Info("Users service starting with cache, metrics and tracing")
 
-	if err := http.ListenAndServe(":"+port, handlerWithLogging); err != nil {
+	if err := http.ListenAndServe(":"+port, handlerWithMiddleware); err != nil {
 		logger.WithError(err).Fatal("Failed to start server")
 	}
 }

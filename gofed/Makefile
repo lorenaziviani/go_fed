@@ -98,6 +98,51 @@ test-cache:
 		-H "Content-Type: application/json" \
 		-d '{"query": "{ usersFromCache { id name email } }"}' | jq .
 
+test-metrics:
+	@echo "Testing Prometheus metrics and request tracing..."
+	./scripts/test-metrics.sh
+
+show-users-metrics:
+	@echo "Users Service Metrics:"
+	curl -s http://localhost:8081/metrics | grep -E "(graphql_requests_total|graphql_active_requests|cache_hits_total|cache_misses_total)" | head -10
+
+show-products-metrics:
+	@echo "Products Service Metrics:"
+	curl -s http://localhost:8082/metrics | grep -E "(graphql_requests_total|graphql_active_requests|semaphore_current|semaphore_max)" | head -10
+
+show-all-metrics:
+	@echo "=== Users Service Metrics ==="
+	@make show-users-metrics
+	@echo ""
+	@echo "=== Products Service Metrics ==="
+	@make show-products-metrics
+
+test-tracing:
+	@echo "Testing request tracing with TraceID..."
+	@trace_id=$$(uuidgen); \
+	echo "Generated TraceID: $$trace_id"; \
+	curl -s -H "X-Trace-ID: $$trace_id" \
+		-H "Content-Type: application/json" \
+		-d '{"query": "{ __typename }"}' \
+		http://localhost:8081/query | jq .; \
+	echo "Check logs for TraceID: $$trace_id"
+
+load-test-metrics:
+	@echo "Generating load to test metrics..."
+	@for i in {1..20}; do \
+		trace_id=$$(uuidgen); \
+		curl -s -H "X-Trace-ID: $$trace_id" \
+			-H "Content-Type: application/json" \
+			-d '{"query": "{ __typename }"}' \
+			http://localhost:8081/query > /dev/null & \
+		curl -s -H "X-Trace-ID: $$trace_id" \
+			-H "Content-Type: application/json" \
+			-d '{"query": "{ __typename }"}' \
+			http://localhost:8082/query > /dev/null & \
+	done; \
+	wait; \
+	echo "Load test completed. Check metrics endpoints."
+
 test-cache-stats:
 	@echo "Checking cache statistics..."
 	curl -s -X POST http://localhost:4000/ \

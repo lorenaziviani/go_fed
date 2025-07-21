@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"products/metrics"
 	"sync"
 	"time"
 )
@@ -33,6 +34,7 @@ func (s *Semaphore) Acquire(ctx context.Context) error {
 		s.mu.Lock()
 		s.current++
 		s.mu.Unlock()
+		metrics.UpdateSemaphoreMetrics("products", s.current, s.max)
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
@@ -47,6 +49,8 @@ func (s *Semaphore) Release() {
 	if s.current > 0 {
 		<-s.permits
 		s.current--
+		// Atualizar métricas do semáforo
+		metrics.UpdateSemaphoreMetrics("products", s.current, s.max)
 	}
 }
 

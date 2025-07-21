@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"products/metrics"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,11 +15,15 @@ func LoggingMiddleware(logger *logrus.Logger) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
+			traceID := metrics.GetTraceID(r.Context())
+			startTime := metrics.GetStartTime(r.Context())
+
 			reqLogger := logger.WithFields(logrus.Fields{
 				"method":      r.Method,
 				"path":        r.URL.Path,
 				"remote_addr": r.RemoteAddr,
 				"user_agent":  r.UserAgent(),
+				"trace_id":    traceID,
 			})
 
 			reqLogger.Info("Request started")
@@ -30,9 +36,13 @@ func LoggingMiddleware(logger *logrus.Logger) func(http.Handler) http.Handler {
 			next.ServeHTTP(wrappedWriter, r)
 
 			duration := time.Since(start)
+			totalDuration := time.Since(startTime)
+
 			reqLogger.WithFields(logrus.Fields{
-				"status_code": wrappedWriter.statusCode,
-				"duration":    duration.String(),
+				"status_code":    wrappedWriter.statusCode,
+				"duration":       duration.String(),
+				"total_duration": totalDuration.String(),
+				"trace_id":       traceID,
 			}).Info("Request completed")
 		})
 	}
