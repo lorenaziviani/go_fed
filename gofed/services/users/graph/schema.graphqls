@@ -1,4 +1,6 @@
-type User {
+directive @key(fields: String!) on OBJECT
+
+type User @key(fields: "id") {
   id: ID!
   name: String!
   email: String!
@@ -8,4 +10,27 @@ type Query {
   users: [User!]!
   user(id: ID!): User
   usersByIds(ids: [ID!]!): [User!]!
+  usersFromCache: [User!]!
+  userFromCache(id: ID!): User
+  cacheStats: CacheStats!
+  simulateRaceCondition: RaceConditionResult!
+  simulateSafeAccess: SafeAccessResult!
+}
+
+type CacheStats {
+  size: Int!
+  maxSize: Int!
+  ttl: String!
+}
+
+type RaceConditionResult {
+  success: Boolean!
+  message: String!
+  duration: String!
+}
+
+type SafeAccessResult {
+  success: Boolean!
+  message: String!
+  duration: String!
 }

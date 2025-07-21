@@ -1,10 +1,27 @@
 package graph
 
-import "users/graph/model"
+import (
+	"time"
+	"users/graph/model"
+)
 
-type Resolver struct{}
+type Resolver struct {
+	cache *UserCache
+}
 
-// Mock data for users
+// NewResolver cria um novo resolver com cache configurado
+func NewResolver() *Resolver {
+	return &Resolver{
+		cache: NewUserCache(100, 5*time.Minute), // Cache com 100 itens, TTL 5min
+	}
+}
+
+// Cache retorna o cache do resolver
+func (r *Resolver) Cache() *UserCache {
+	return r.cache
+}
+
+// Mock data para usuários
 var users = []*model.User{
 	{
 		ID:    "1",

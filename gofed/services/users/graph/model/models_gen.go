@@ -2,7 +2,25 @@
 
 package model
 
+type CacheStats struct {
+	Size    int    `json:"size"`
+	MaxSize int    `json:"maxSize"`
+	TTL     string `json:"ttl"`
+}
+
 type Query struct {
+}
+
+type RaceConditionResult struct {
+	Success  bool   `json:"success"`
+	Message  string `json:"message"`
+	Duration string `json:"duration"`
+}
+
+type SafeAccessResult struct {
+	Success  bool   `json:"success"`
+	Message  string `json:"message"`
+	Duration string `json:"duration"`
 }
 
 type User struct {

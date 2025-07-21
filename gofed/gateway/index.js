@@ -36,10 +36,33 @@ const typeDefs = gql`
     usage: Int!
   }
 
+  type CacheStats {
+    size: Int!
+    maxSize: Int!
+    ttl: String!
+  }
+
+  type RaceConditionResult {
+    success: Boolean!
+    message: String!
+    duration: String!
+  }
+
+  type SafeAccessResult {
+    success: Boolean!
+    message: String!
+    duration: String!
+  }
+
   type Query {
     users: [User!]!
     user(id: ID!): User
     usersByIds(ids: [ID!]!): [User!]!
+    usersFromCache: [User!]!
+    userFromCache(id: ID!): User
+    cacheStats: CacheStats!
+    simulateRaceCondition: RaceConditionResult!
+    simulateSafeAccess: SafeAccessResult!
     products: [Product!]!
     product(id: ID!): Product
     productsByIds(ids: [ID!]!): [Product!]!
@@ -80,6 +103,51 @@ const resolvers = {
       });
       const data = await response.json();
       return data.data.usersByIds;
+    },
+    usersFromCache: async () => {
+      const response = await fetch(USERS_SERVICE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: '{ usersFromCache { id name email } }' }),
+      });
+      const data = await response.json();
+      return data.data.usersFromCache;
+    },
+    userFromCache: async (_, { id }) => {
+      const response = await fetch(USERS_SERVICE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: `{ userFromCache(id: "${id}") { id name email } }` }),
+      });
+      const data = await response.json();
+      return data.data.userFromCache;
+    },
+    cacheStats: async () => {
+      const response = await fetch(USERS_SERVICE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: '{ cacheStats { size maxSize ttl } }' }),
+      });
+      const data = await response.json();
+      return data.data.cacheStats;
+    },
+    simulateRaceCondition: async () => {
+      const response = await fetch(USERS_SERVICE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: '{ simulateRaceCondition { success message duration } }' }),
+      });
+      const data = await response.json();
+      return data.data.simulateRaceCondition;
+    },
+    simulateSafeAccess: async () => {
+      const response = await fetch(USERS_SERVICE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: '{ simulateSafeAccess { success message duration } }' }),
+      });
+      const data = await response.json();
+      return data.data.simulateSafeAccess;
     },
     products: async () => {
       const response = await fetch(PRODUCTS_SERVICE_URL, {
@@ -179,19 +247,25 @@ async function startServer() {
     listen: { port: parseInt(GATEWAY_PORT) },
   });
 
-  console.log(`Apollo Federation Gateway ready at ${url}`);
-  console.log(`GraphQL Playground available at ${url}`);
-  console.log('\nConnected Services:');
+  console.log(`🚀 Apollo Federation Gateway ready at ${url}`);
+  console.log(`🎮 GraphQL Playground available at ${url}`);
+  console.log('\n📡 Connected Services:');
   console.log(`   - users: ${USERS_SERVICE_URL}`);
   console.log(`   - products: ${PRODUCTS_SERVICE_URL}`);
-  console.log('\nFederation is active! You can now query across services.');
-  console.log('Federation keys enabled: User(id), Product(id)');
-  console.log('\nNew Features:');
+  console.log('\n🔗 Federation is active! You can now query across services.');
+  console.log('🔑 Federation keys enabled: User(id), Product(id)');
+  console.log('\n📊 New Features:');
   console.log('   - Concurrent user resolution with WaitGroup + Channels');
   console.log('   - Semaphore-limited product resolution (max 3 concurrent)');
   console.log('   - Backpressure control and performance monitoring');
-  console.log('\nExample Queries:');
+  console.log('   - User cache with race condition detection');
+  console.log('   - Thread-safe cache with mutex and sync.Map');
+  console.log('\n🧪 Example Queries:');
   console.log('   - usersByIds(ids: ["1", "2", "3", "4", "5"])');
+  console.log('   - usersFromCache');
+  console.log('   - cacheStats');
+  console.log('   - simulateRaceCondition');
+  console.log('   - simulateSafeAccess');
   console.log('   - productsWithSemaphore(ids: ["1", "2", "3", "4", "5"])');
   console.log('   - semaphoreStats');
   console.log('   - productsByCategory(category: "Electronics")');

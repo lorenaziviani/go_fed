@@ -37,6 +37,10 @@ test-semaphore:
 	@echo "Testing semaphore and backpressure..."
 	./scripts/test-semaphore.sh
 
+test-race-conditions:
+	@echo "Testing race conditions and cache..."
+	./scripts/test-race-conditions.sh
+
 test-federation:
 	@echo "Testing federation with owner queries..."
 	curl -s -X POST http://localhost:4000/ \
@@ -88,6 +92,30 @@ test-semaphore-stats:
 		-H "Content-Type: application/json" \
 		-d '{"query": "{ semaphoreStats { max current available usage } }"}' | jq .
 
+test-cache:
+	@echo "Testing user cache..."
+	curl -s -X POST http://localhost:4000/ \
+		-H "Content-Type: application/json" \
+		-d '{"query": "{ usersFromCache { id name email } }"}' | jq .
+
+test-cache-stats:
+	@echo "Checking cache statistics..."
+	curl -s -X POST http://localhost:4000/ \
+		-H "Content-Type: application/json" \
+		-d '{"query": "{ cacheStats { size maxSize ttl } }"}' | jq .
+
+test-race-simulation:
+	@echo "Simulating race condition (may cause issues)..."
+	curl -s -X POST http://localhost:4000/ \
+		-H "Content-Type: application/json" \
+		-d '{"query": "{ simulateRaceCondition { success message duration } }"}' | jq .
+
+test-safe-access:
+	@echo "Testing safe access simulation..."
+	curl -s -X POST http://localhost:4000/ \
+		-H "Content-Type: application/json" \
+		-d '{"query": "{ simulateSafeAccess { success message duration } }"}' | jq .
+
 test-race:
 	@echo "Running race detection tests..."
 	cd services/users && go test -race ./...
@@ -100,6 +128,10 @@ test-benchmark-detail:
 	@echo "Running detailed benchmarks..."
 	./scripts/benchmark.sh
 
+test-cache-benchmark:
+	@echo "Running cache performance benchmarks..."
+	cd services/users && go test -bench=BenchmarkCache -benchmem ./graph/
+
 test-all:
 	@echo "Running all tests..."
 	@echo "1. Race detection..."
@@ -108,11 +140,17 @@ test-all:
 	@echo "2. Performance benchmarks..."
 	@$(MAKE) test-benchmark
 	@echo ""
-	@echo "3. Federation tests..."
+	@echo "3. Cache benchmarks..."
+	@$(MAKE) test-cache-benchmark
+	@echo ""
+	@echo "4. Federation tests..."
 	@$(MAKE) test-queries
 	@echo ""
-	@echo "4. Semaphore tests..."
+	@echo "5. Semaphore tests..."
 	@$(MAKE) test-semaphore
+	@echo ""
+	@echo "6. Race condition tests..."
+	@$(MAKE) test-race-conditions
 
 health-check:
 	@echo "Checking service health..."
