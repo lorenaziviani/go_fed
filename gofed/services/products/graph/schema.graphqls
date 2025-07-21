@@ -1,4 +1,6 @@
-type Product {
+directive @key(fields: String!) on OBJECT
+
+type Product @key(fields: "id") {
   id: ID!
   name: String!
   description: String!
@@ -7,7 +9,7 @@ type Product {
   owner: User!
 }
 
-type User {
+type User @key(fields: "id") {
   id: ID!
   name: String!
   email: String!
@@ -16,4 +18,15 @@ type User {
 type Query {
   products: [Product!]!
   product(id: ID!): Product
+  productsByIds(ids: [ID!]!): [Product!]!
+  productsByCategory(category: String!): [Product!]!
+  productsWithSemaphore(ids: [ID!]!): [Product!]!
+  semaphoreStats: SemaphoreStats!
+}
+
+type SemaphoreStats {
+  max: Int!
+  current: Int!
+  available: Int!
+  usage: Int!
 }

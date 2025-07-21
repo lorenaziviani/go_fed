@@ -14,6 +14,13 @@ type Product struct {
 type Query struct {
 }
 
+type SemaphoreStats struct {
+	Max       int `json:"max"`
+	Current   int `json:"current"`
+	Available int `json:"available"`
+	Usage     int `json:"usage"`
+}
+
 type User struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`

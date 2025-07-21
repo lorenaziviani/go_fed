@@ -29,12 +29,23 @@ const typeDefs = gql`
     owner: User!
   }
 
+  type SemaphoreStats {
+    max: Int!
+    current: Int!
+    available: Int!
+    usage: Int!
+  }
+
   type Query {
     users: [User!]!
     user(id: ID!): User
     usersByIds(ids: [ID!]!): [User!]!
     products: [Product!]!
     product(id: ID!): Product
+    productsByIds(ids: [ID!]!): [Product!]!
+    productsByCategory(category: String!): [Product!]!
+    productsWithSemaphore(ids: [ID!]!): [Product!]!
+    semaphoreStats: SemaphoreStats!
   }
 `;
 
@@ -63,8 +74,8 @@ const resolvers = {
       const response = await fetch(USERS_SERVICE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          query: `{ usersByIds(ids: [${ids.map(id => `"${id}"`).join(', ')}]) { id name email } }` 
+        body: JSON.stringify({
+          query: `{ usersByIds(ids: [${ids.map(id => `"${id}"`).join(', ')}]) { id name email } }`
         }),
       });
       const data = await response.json();
@@ -87,6 +98,48 @@ const resolvers = {
       });
       const data = await response.json();
       return data.data.product;
+    },
+    productsByIds: async (_, { ids }) => {
+      const response = await fetch(PRODUCTS_SERVICE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: `{ productsByIds(ids: [${ids.map(id => `"${id}"`).join(', ')}]) { id name description price category owner { id name email } } }`
+        }),
+      });
+      const data = await response.json();
+      return data.data.productsByIds;
+    },
+    productsByCategory: async (_, { category }) => {
+      const response = await fetch(PRODUCTS_SERVICE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: `{ productsByCategory(category: "${category}") { id name description price category owner { id name email } } }`
+        }),
+      });
+      const data = await response.json();
+      return data.data.productsByCategory;
+    },
+    productsWithSemaphore: async (_, { ids }) => {
+      const response = await fetch(PRODUCTS_SERVICE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: `{ productsWithSemaphore(ids: [${ids.map(id => `"${id}"`).join(', ')}]) { id name description price category owner { id name email } } }`
+        }),
+      });
+      const data = await response.json();
+      return data.data.productsWithSemaphore;
+    },
+    semaphoreStats: async () => {
+      const response = await fetch(PRODUCTS_SERVICE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: '{ semaphoreStats { max current available usage } }' }),
+      });
+      const data = await response.json();
+      return data.data.semaphoreStats;
     },
   },
   // Resolvers para federation
@@ -128,15 +181,20 @@ async function startServer() {
 
   console.log(`Apollo Federation Gateway ready at ${url}`);
   console.log(`GraphQL Playground available at ${url}`);
-  console.log('\n Connected Services:');
+  console.log('\nConnected Services:');
   console.log(`   - users: ${USERS_SERVICE_URL}`);
   console.log(`   - products: ${PRODUCTS_SERVICE_URL}`);
-  console.log('\n Federation is active! You can now query across services.');
+  console.log('\nFederation is active! You can now query across services.');
   console.log('Federation keys enabled: User(id), Product(id)');
-  console.log('\n Example queries:');
-  console.log('  - products { id name owner { id name } }');
-  console.log('  - users { id name } products { id name owner { id name } }');
-  console.log('  - usersByIds(ids: ["1", "2", "3"]) { id name email }');
+  console.log('\nNew Features:');
+  console.log('   - Concurrent user resolution with WaitGroup + Channels');
+  console.log('   - Semaphore-limited product resolution (max 3 concurrent)');
+  console.log('   - Backpressure control and performance monitoring');
+  console.log('\nExample Queries:');
+  console.log('   - usersByIds(ids: ["1", "2", "3", "4", "5"])');
+  console.log('   - productsWithSemaphore(ids: ["1", "2", "3", "4", "5"])');
+  console.log('   - semaphoreStats');
+  console.log('   - productsByCategory(category: "Electronics")');
 }
 
 startServer().catch(console.error); 

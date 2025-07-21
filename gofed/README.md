@@ -8,6 +8,7 @@ Demonstrar a implementação de **GraphQL Federation** com microsserviços em Go
 
 - ✅ **Resoluções concorrentes** com WaitGroup, context.Context, canais
 - ✅ **Benchmarks e race detection** para validação de performance e segurança
+- ✅ **Semáforo customizado** para controle de backpressure e limitação de concorrência
 - Simulação de problemas de performance mitigados com paralelismo e cache
 - Federation com Apollo Gateway e diretivas `@key`
 
@@ -19,8 +20,9 @@ Demonstrar a implementação de **GraphQL Federation** com microsserviços em Go
 - **Apollo Gateway (Node.js)**: Para GraphQL federation
 - **Docker & Docker Compose**: Containerização e orquestração
 - **Federation v2.0**: Com diretivas `@key` para referências cruzadas
-- **Concurrency Patterns**: WaitGroup, Channels, Context
+- **Concurrency Patterns**: WaitGroup, Channels, Context, Semaphore
 - **Testing**: Race detection, Benchmarks, Unit tests
+- **Backpressure Control**: Semáforo customizado com chan struct{}
 
 ## 📁 Estrutura do Monorepo
 
@@ -89,6 +91,9 @@ make docker-down
 ```bash
 # Executar todos os testes
 ./scripts/test-queries.sh
+
+# Testar semáforo e backpressure
+./scripts/test-semaphore.sh
 ```
 
 ### 2. Queries de Exemplo
@@ -166,6 +171,51 @@ query {
 }
 ```
 
+#### Query com Semáforo - Produtos com Backpressure
+
+```graphql
+query {
+  productsWithSemaphore(ids: ["1", "2", "3", "4", "5"]) {
+    id
+    name
+    description
+    price
+    category
+    owner {
+      id
+      name
+      email
+    }
+  }
+}
+```
+
+#### Estatísticas do Semáforo
+
+```graphql
+query {
+  semaphoreStats {
+    max
+    current
+    available
+    usage
+  }
+}
+```
+
+#### Produtos por Categoria
+
+```graphql
+query {
+  productsByCategory(category: "Electronics") {
+    id
+    name
+    category
+    price
+  }
+}
+```
+
 ### 3. Testes com curl
 
 ```bash
@@ -178,6 +228,16 @@ curl -X POST http://localhost:4000/ \
 curl -X POST http://localhost:4000/ \
   -H "Content-Type: application/json" \
   -d '{"query": "{ usersByIds(ids: [\"1\", \"2\", \"3\", \"4\", \"5\"]) { id name email } }"}'
+
+# Query com semáforo - produtos com backpressure
+curl -X POST http://localhost:4000/ \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ productsWithSemaphore(ids: [\"1\", \"2\", \"3\", \"4\", \"5\"]) { id name } }"}'
+
+# Estatísticas do semáforo
+curl -X POST http://localhost:4000/ \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ semaphoreStats { max current available usage } }"}'
 
 # Query complexa federada
 curl -X POST http://localhost:4000/ \
@@ -225,36 +285,95 @@ curl -X POST http://localhost:4000/ \
 - **Timeout**: 5 segundos por query
 - **Latência Simulada**: 100ms por usuário
 
+### Semáforo Customizado (Products Service)
+
+- **Limitação**: Máximo 3 resoluções concorrentes
+- **Implementação**: `chan struct{}` com mutex
+- **Backpressure**: Controle automático de sobrecarga
+- **Monitoramento**: Estatísticas em tempo real
+- **Latência**: 200ms por produto (simulando carga)
+
 ### Performance
 
 - **Query Concorrente (5 usuários)**: ~0.16s
 - **Query Concorrente (8 usuários)**: ~0.16s
+- **Query com Semáforo (5 produtos)**: ~0.4s (backpressure)
 - **Queries Sequenciais**: ~0.09s cada (0.45s total para 5)
 
 ### Exemplo de Implementação
 
 ```go
-func (r *Resolver) UsersByIds(ctx context.Context, ids []string) ([]*model.User, error) {
-    // Contexto com timeout
-    ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-    defer cancel()
-
-    // Canais para resultados e erros
-    resultChan := make(chan *model.User, len(ids))
-    errorChan := make(chan error, len(ids))
-
-    // WaitGroup para sincronização
-    var wg sync.WaitGroup
-
-    // Goroutines para cada ID
-    for _, id := range ids {
-        wg.Add(1)
-        go fetchUser(id, &wg, resultChan, errorChan, ctx)
-    }
-
-    // Coletar resultados
-    // ...
+// Semáforo customizado
+type Semaphore struct {
+    permits chan struct{}
+    mu      sync.RWMutex
+    max     int
+    current int
 }
+
+// Resolução com semáforo
+func (r *Resolver) ProductsWithSemaphore(ctx context.Context, ids []string) ([]*model.Product, error) {
+    // Adquirir permissão do semáforo
+    if err := r.semaphore.Acquire(ctx); err != nil {
+        return nil, err
+    }
+    defer r.semaphore.Release()
+
+    // Processar produto...
+}
+```
+
+## 🔒 Semáforo e Backpressure
+
+### Implementação do Semáforo
+
+```go
+// Semáforo customizado usando chan struct{}
+type Semaphore struct {
+    permits chan struct{}
+    mu      sync.RWMutex
+    max     int
+    current int
+}
+
+// Métodos principais
+func (s *Semaphore) Acquire(ctx context.Context) error
+func (s *Semaphore) Release()
+func (s *Semaphore) Stats() map[string]int
+```
+
+### Características do Semáforo
+
+- **Limitação**: Máximo 3 resoluções simultâneas
+- **Thread-safe**: Mutex para operações concorrentes
+- **Context-aware**: Suporte a cancelamento e timeout
+- **Estatísticas**: Monitoramento em tempo real
+- **Backpressure**: Controle automático de carga
+
+### Monitoramento
+
+```graphql
+query {
+  semaphoreStats {
+    max # Máximo de permissões (3)
+    current # Permissões em uso
+    available # Permissões disponíveis
+    usage # Percentual de uso (%)
+  }
+}
+```
+
+### Comandos de Teste
+
+```bash
+# Testar semáforo
+make test-semaphore
+
+# Verificar estatísticas
+make test-semaphore-stats
+
+# Testar performance
+make test-semaphore-performance
 ```
 
 ## 📊 Benchmark e Race Detection
@@ -364,14 +483,18 @@ FEDERATION_VERSION=2
 # Testes e Desenvolvimento
 TEST_TIMEOUT=30s
 DEBUG_MODE=false
-BENCHMARK_ENABLED=true
-RACE_DETECTION_ENABLED=true
+
+# Semáforo e Backpressure
+SEMAPHORE_MAX_CONCURRENT=3
+SEMAPHORE_TIMEOUT=10s
+BACKPRESSURE_ENABLED=true
 ```
 
 ## 📈 Próximos Passos
 
 - [x] **Resoluções concorrentes** (WaitGroup, context.Context, channels) ✅
 - [x] **Benchmarks e race detection** (go test -race, go test -bench) ✅
+- [x] **Semáforo customizado** (backpressure, limitação de concorrência) ✅
 - [ ] **Cache e otimizações de performance**
 - [ ] **Novos serviços** (orders, reviews) que referenciam users/products
 - [ ] **Autenticação e autorização**
@@ -386,7 +509,7 @@ RACE_DETECTION_ENABLED=true
 1. **Frontend/Client**: Consome o GraphQL federado
 2. **Apollo Gateway**: Orquestra e combina schemas
 3. **Users Service**: Gerencia dados de usuários (com concorrência e testes)
-4. **Products Service**: Gerencia dados de produtos
+4. **Products Service**: Gerencia dados de produtos (com semáforo e backpressure)
 5. **Mock Data**: Dados de exemplo em memória
 
 ### Fluxo de Dados

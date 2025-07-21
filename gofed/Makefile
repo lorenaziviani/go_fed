@@ -33,6 +33,10 @@ test-queries:
 	@echo "Running federation tests..."
 	./scripts/test-queries.sh
 
+test-semaphore:
+	@echo "Testing semaphore and backpressure..."
+	./scripts/test-semaphore.sh
+
 test-federation:
 	@echo "Testing federation with owner queries..."
 	curl -s -X POST http://localhost:4000/ \
@@ -67,6 +71,23 @@ test-performance:
 	duration=$$(echo "$$end_time - $$start_time" | bc); \
 	echo "Duration: $${duration}s"
 
+test-semaphore-performance:
+	@echo "Testing semaphore performance..."
+	@echo "Query: productsWithSemaphore(ids: [\"1\", \"2\", \"3\", \"4\", \"5\"])"
+	@start_time=$$(date +%s.%N); \
+	curl -s -X POST http://localhost:4000/ \
+		-H "Content-Type: application/json" \
+		-d '{"query": "{ productsWithSemaphore(ids: [\"1\", \"2\", \"3\", \"4\", \"5\"]) { id name } }"}' | jq .; \
+	end_time=$$(date +%s.%N); \
+	duration=$$(echo "$$end_time - $$start_time" | bc); \
+	echo "Duration: $${duration}s"
+
+test-semaphore-stats:
+	@echo "Checking semaphore statistics..."
+	curl -s -X POST http://localhost:4000/ \
+		-H "Content-Type: application/json" \
+		-d '{"query": "{ semaphoreStats { max current available usage } }"}' | jq .
+
 test-race:
 	@echo "Running race detection tests..."
 	cd services/users && go test -race ./...
@@ -89,6 +110,9 @@ test-all:
 	@echo ""
 	@echo "3. Federation tests..."
 	@$(MAKE) test-queries
+	@echo ""
+	@echo "4. Semaphore tests..."
+	@$(MAKE) test-semaphore
 
 health-check:
 	@echo "Checking service health..."
