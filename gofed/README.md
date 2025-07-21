@@ -31,9 +31,11 @@ gofed/
 └── go.work
 ```
 
-## Serviço Users
+## Serviços
 
-### Funcionalidades
+### Users Service (Porta 8081)
+
+#### Funcionalidades
 
 - **Query `users`**: Retorna todos os usuários
 - **Query `user(id: ID!)`**: Retorna um usuário específico por ID
@@ -41,30 +43,23 @@ gofed/
 - **Health Check**: Endpoint `/healthz` para monitoramento
 - **Logging estruturado**: Logs em JSON com contexto completo
 
-### Como executar
-
-#### Localmente:
+#### Como executar
 
 ```bash
+# Localmente
 cd gofed/services/users
 go run main.go
-```
 
-#### Via Docker:
-
-```bash
+# Via Docker
 cd gofed/services/users
 docker build -t gofed-users .
 docker run -p 8081:8081 gofed-users
-```
 
-#### Via Makefile:
-
-```bash
+# Via Makefile
 make run-users
 ```
 
-### Testando o serviço
+#### Testando o serviço
 
 1. **Acesse o GraphQL Playground**: http://localhost:8081/
 2. **Teste a query `users`**:
@@ -92,13 +87,79 @@ make run-users
    curl http://localhost:8081/healthz
    ```
 
-### Endpoints
+### Products Service (Porta 8082)
+
+#### Funcionalidades
+
+- **Query `products`**: Retorna todos os produtos
+- **Query `product(id: ID!)`**: Retorna um produto específico por ID
+- **Dados mock**: iPhone, MacBook, Nike, Coffee Maker
+- **Health Check**: Endpoint `/healthz` para monitoramento
+- **Logging estruturado**: Logs em JSON com contexto completo
+
+#### Como executar
+
+```bash
+# Localmente
+cd gofed/services/products
+go run main.go
+
+# Via Docker
+cd gofed/services/products
+docker build -t gofed-products .
+docker run -p 8082:8082 gofed-products
+
+# Via Makefile
+make run-products
+```
+
+#### Testando o serviço
+
+1. **Acesse o GraphQL Playground**: http://localhost:8082/
+2. **Teste a query `products`**:
+   ```graphql
+   query {
+     products {
+       id
+       name
+       description
+       price
+       category
+     }
+   }
+   ```
+3. **Teste a query `product`**:
+   ```graphql
+   query {
+     product(id: "1") {
+       id
+       name
+       description
+       price
+       category
+     }
+   }
+   ```
+4. **Teste o Health Check**:
+   ```bash
+   curl http://localhost:8082/healthz
+   ```
+
+## Endpoints
+
+### Users Service
 
 - **GraphQL Playground**: http://localhost:8081/
 - **GraphQL Query**: http://localhost:8081/query
 - **Health Check**: http://localhost:8081/healthz
 
-### Logging
+### Products Service
+
+- **GraphQL Playground**: http://localhost:8082/
+- **GraphQL Query**: http://localhost:8082/query
+- **Health Check**: http://localhost:8082/healthz
+
+## Logging
 
 O serviço utiliza logging estruturado em JSON com os seguintes campos:
 
@@ -112,7 +173,7 @@ O serviço utiliza logging estruturado em JSON com os seguintes campos:
 - `status_code`: Código de status HTTP
 - `duration`: Duração da requisição
 
-### Variáveis de Ambiente
+## Variáveis de Ambiente
 
 ```bash
 # Nível de log (debug, info, warn, error, fatal)
@@ -121,7 +182,6 @@ LOG_LEVEL=info
 
 ## Próximos passos
 
-- [ ] Implementar serviço products
 - [ ] Configurar Apollo Gateway
 - [ ] Implementar federação GraphQL
 - [ ] Adicionar resoluções concorrentes
