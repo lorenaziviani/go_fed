@@ -4,6 +4,7 @@ go 1.24.3
 
 require (
 	github.com/99designs/gqlgen v0.17.76
+	github.com/sirupsen/logrus v1.9.3
 	github.com/vektah/gqlparser/v2 v2.5.30
 )
 
@@ -14,4 +15,5 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
+	golang.org/x/sys v0.33.0 // indirect
 )

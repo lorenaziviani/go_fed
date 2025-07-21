@@ -13,6 +13,7 @@ Demonstrar padrões de microsserviços federados, resoluções concorrentes em G
 - Apollo Gateway (Node.js)
 - Docker (opcional)
 - Draw.io (diagramas)
+- Logrus (logging estruturado)
 
 ## Estrutura
 
@@ -37,6 +38,8 @@ gofed/
 - **Query `users`**: Retorna todos os usuários
 - **Query `user(id: ID!)`**: Retorna um usuário específico por ID
 - **Dados mock**: Alice e Bob pré-cadastrados
+- **Health Check**: Endpoint `/healthz` para monitoramento
+- **Logging estruturado**: Logs em JSON com contexto completo
 
 ### Como executar
 
@@ -84,11 +87,37 @@ make run-users
      }
    }
    ```
+4. **Teste o Health Check**:
+   ```bash
+   curl http://localhost:8081/healthz
+   ```
 
 ### Endpoints
 
 - **GraphQL Playground**: http://localhost:8081/
 - **GraphQL Query**: http://localhost:8081/query
+- **Health Check**: http://localhost:8081/healthz
+
+### Logging
+
+O serviço utiliza logging estruturado em JSON com os seguintes campos:
+
+- `timestamp`: Timestamp ISO 8601
+- `level`: Nível do log (info, warn, error, fatal)
+- `message`: Mensagem do log
+- `service`: Nome do serviço
+- `version`: Versão do serviço
+- `method`: Método HTTP (para requisições)
+- `path`: Caminho da requisição
+- `status_code`: Código de status HTTP
+- `duration`: Duração da requisição
+
+### Variáveis de Ambiente
+
+```bash
+# Nível de log (debug, info, warn, error, fatal)
+LOG_LEVEL=info
+```
 
 ## Próximos passos
 
