@@ -1,41 +1,58 @@
 <mxfile host="65bd71144e">
-    <diagram id="hpp6F_N6WRw1pWlAkj2M" name="Page-1">
-        <mxGraphModel dx="692" dy="710" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <diagram name="Gofed Architecture" id="gofed-arch">
+        <mxGraphModel dx="2106" dy="1474" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="4" value="" style="edgeStyle=none;html=1;" parent="1" source="2" target="3" edge="1">
+                <mxCell id="client" value="Client/Frontend&lt;br&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;GraphQL &lt;/font&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;Client&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="-90" y="40" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="gateway" value="Apollo Gateway&lt;br&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;Port: 4000&lt;br&gt;Federation v2.0&lt;br&gt;@key directives&lt;br&gt;__resolveReference&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="30" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="users" value="Users Service&lt;br&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;Port: 8081&lt;br&gt;GraphQL + gqlgen&lt;br&gt;Health Check&lt;br&gt;Structured Logging&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="-70" width="140" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="products" value="Products Service&lt;br&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;Port: 8082&lt;br&gt;GraphQL + gqlgen&lt;br&gt;Health Check&lt;br&gt;Owner Relations&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="435" y="270" width="140" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="mock-users" value="Users Mock Data&lt;br&gt;Alice, Bob, Charlie&lt;br&gt;In-memory storage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="930" y="-60" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="mock-products" value="Products Mock Data&lt;br&gt;iPhone, MacBook, Nike&lt;br&gt;With Owner Relations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="930" y="280" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="federation" value="Federation Features&lt;br&gt;• &lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;@key(fields: &quot;id&quot;)&lt;br&gt;• __resolveReference&lt;br&gt;• Cross-service queries&lt;br&gt;• Owner relationships&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="130" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="testing" value="Testing &amp;amp; Tools&lt;br&gt;•&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt; GraphQL Playground&lt;br&gt;• Apollo Studio&lt;br&gt;• curl scripts&lt;br&gt;• Health checks&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f3ff;strokeColor=#0066cc;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="320" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="docker" value="&amp;nbsp;Docker &amp;amp; Compose&lt;br&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;• Containerized services&lt;br&gt;• Network isolation&lt;br&gt;• Environment variables&lt;br&gt;• Easy deployment&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#666666;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="230" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn1" value="GraphQL Queries" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" parent="1" source="client" target="gateway" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="2" value="Frontend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90CAF9;" parent="1" vertex="1">
-                    <mxGeometry x="10" y="210" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="6" value="" style="edgeStyle=none;html=1;" parent="1" source="3" target="5" edge="1">
+                <mxCell id="conn2" value="Federation Proxy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;" parent="1" source="gateway" target="users" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="8" value="" style="edgeStyle=none;html=1;" parent="1" source="3" target="7" edge="1">
+                <mxCell id="conn3" value="Federation Proxy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;" parent="1" source="gateway" target="products" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="3" value="Apollo Gateway&lt;div&gt;(Node.js - Porta 4000)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9575CD;" parent="1" vertex="1">
-                    <mxGeometry x="210" y="210" width="140" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="10" value="" style="edgeStyle=none;html=1;" parent="1" source="5" target="9" edge="1">
+                <mxCell id="conn4" value="Data Access" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;strokeWidth=1;" parent="1" source="users" target="mock-users" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="5" value="Users Service&lt;div&gt;(Go + gqlgen - Porta 8081)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;" parent="1" vertex="1">
-                    <mxGeometry x="410" y="90" width="160" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="12" value="" style="edgeStyle=none;html=1;" parent="1" source="7" target="11" edge="1">
+                <mxCell id="conn5" value="Data Access" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;strokeWidth=1;" parent="1" source="products" target="mock-products" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="7" value="Products Service&lt;div&gt;(Go + gqlgen - Porta 8082)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFB74D;" parent="1" vertex="1">
-                    <mxGeometry x="410" y="340" width="160" height="60" as="geometry"/>
+                <mxCell id="conn6" value="Owner Relations" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d6b656;strokeWidth=2;dashed=1;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" parent="1" target="users" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="580" y="290" as="sourcePoint"/>
+                    </mxGeometry>
                 </mxCell>
-                <mxCell id="9" value="Mock Data&lt;div&gt;(In-memory)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B0BEC5;" parent="1" vertex="1">
-                    <mxGeometry x="610" y="90" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="11" value="Mock Data&lt;div&gt;(In-memory)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B0BEC5;" parent="1" vertex="1">
-                    <mxGeometry x="610" y="340" width="120" height="60" as="geometry"/>
+                <mxCell id="status3" value="&amp;nbsp;Running" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="42" width="50" height="20" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>

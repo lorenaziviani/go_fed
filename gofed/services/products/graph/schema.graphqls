@@ -4,6 +4,13 @@ type Product {
   description: String!
   price: Float!
   category: String!
+  owner: User!
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
 }
 
 type Query {

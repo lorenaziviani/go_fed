@@ -1,0 +1,93 @@
+# Examples of queries to test the federation
+
+# 1. Basic query of users
+query GetUsers {
+  users {
+    id
+    name
+    email
+  }
+}
+
+# 2. Basic query of products
+query GetProducts {
+  products {
+    id
+    name
+    description
+    price
+    category
+  }
+}
+
+# 3. Federated query - products with owner (demonstrates federation)
+query GetProductsWithOwner {
+  products {
+    id
+    name
+    owner {
+      id
+      name
+      email
+    }
+  }
+}
+
+# 4. Federated query - users and products together
+query GetUsersAndProducts {
+  users {
+    id
+    name
+    email
+  }
+  products {
+    id
+    name
+    owner {
+      id
+      name
+    }
+  }
+}
+
+# 5. Query by ID
+query GetUserById {
+  user(id: "1") {
+    id
+    name
+    email
+  }
+}
+
+# 6. Query by ID with owner
+query GetProductById {
+  product(id: "1") {
+    id
+    name
+    description
+    price
+    owner {
+      id
+      name
+      email
+    }
+  }
+}
+
+# 7. Complex federated query
+query GetComplexData {
+  users {
+    id
+    name
+  }
+  products {
+    id
+    name
+    price
+    category
+    owner {
+      id
+      name
+    }
+  }
+}

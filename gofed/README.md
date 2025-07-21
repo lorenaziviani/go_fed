@@ -1,291 +1,216 @@
-# Gofed
+# 🚀 Gofed - Federation de Microsserviços com GraphQL
 
-Gofed é uma aplicação demonstrativa que simula um ambiente federado com microsserviços em Go utilizando GraphQL. Cada microsserviço possui seu próprio schema e expõe parte do domínio (ex: usuários, produtos). A federação é feita via Apollo Gateway (Node.js).
+O **Gofed** é uma aplicação demonstrativa que simula um ambiente federado com microsserviços em Go usando GraphQL. Cada microsserviço possui seu schema e expõe parte do domínio (ex: usuários, produtos). A federação é feita via Apollo Gateway.
 
-## Objetivo
+## 🎯 Objetivo
 
-Demonstrar padrões de microsserviços federados, resoluções concorrentes em Go (WaitGroup, context.Context, canais), simulação de problemas de performance e mitigação com paralelismo e cache.
+Demonstrar a implementação de **GraphQL Federation** com microsserviços em Go, incluindo:
 
-## Tech Stack
+- Resoluções concorrentes com WaitGroup, context.Context, canais
+- Simulação de problemas de performance mitigados com paralelismo e cache
+- Federation com Apollo Gateway e diretivas `@key`
 
-- Go 1.18+
-- GraphQL (gqlgen)
-- Apollo Gateway (Node.js)
-- Docker (opcional)
-- Draw.io (diagramas)
-- Logrus (logging estruturado)
+## 🛠️ Tech Stack
 
-## Estrutura
+- **Go 1.24.3**: Linguagem principal para microsserviços
+- **GraphQL**: API query language
+- **gqlgen**: Biblioteca Go para GraphQL
+- **Apollo Gateway (Node.js)**: Para GraphQL federation
+- **Docker & Docker Compose**: Containerização e orquestração
+- **Federation v2.0**: Com diretivas `@key` para referências cruzadas
+
+## 📁 Estrutura do Monorepo
 
 ```
 gofed/
 ├── services/
 │   ├── users/          # Serviço de usuários (porta 8081)
 │   └── products/       # Serviço de produtos (porta 8082)
-├── gateway/            # Apollo Gateway (porta 4000)
-├── docs/
-│   └── arquitecture.drawio
-├── README.md
-├── Makefile
-├── env.example
-├── docker-compose.yml
-└── go.work
+├── gateway/            # Apollo Federation Gateway (porta 4000)
+├── docs/              # Documentação e diagramas
+├── examples/          # Exemplos de queries GraphQL
+├── scripts/           # Scripts de teste e automação
+├── docker-compose.yml # Orquestração dos serviços
+├── Makefile          # Comandos de automação
+└── env.example       # Variáveis de ambiente
 ```
 
-## Serviços
+## 🚀 Como Executar
 
-### Users Service (Porta 8081)
-
-#### Funcionalidades
-
-- **Query `users`**: Retorna todos os usuários
-- **Query `user(id: ID!)`**: Retorna um usuário específico por ID
-- **Dados mock**: Alice e Bob pré-cadastrados
-- **Health Check**: Endpoint `/healthz` para monitoramento
-- **Logging estruturado**: Logs em JSON com contexto completo
-- **Federation Support**: Diretiva `@key(fields: "id")` e `__resolveReference`
-
-#### Como executar
+### Opção 1: Docker Compose (Recomendado)
 
 ```bash
-# Localmente
-cd gofed/services/users
-go run main.go
+# Construir e subir todos os serviços
+docker-compose up -d
 
-# Via Docker
-cd gofed/services/users
-docker build -t gofed-users .
-docker run -p 8081:8081 gofed-users
+# Ver logs
+docker-compose logs -f
 
-# Via Makefile
+# Parar serviços
+docker-compose down
+```
+
+### Opção 2: Localmente
+
+```bash
+# Terminal 1: Users Service
 make run-users
-```
 
-#### Testando o serviço
-
-1. **Acesse o GraphQL Playground**: http://localhost:8081/
-2. **Teste a query `users`**:
-   ```graphql
-   query {
-     users {
-       id
-       name
-       email
-     }
-   }
-   ```
-3. **Teste a query `user`**:
-   ```graphql
-   query {
-     user(id: "1") {
-       id
-       name
-       email
-     }
-   }
-   ```
-4. **Teste o Health Check**:
-   ```bash
-   curl http://localhost:8081/healthz
-   ```
-
-### Products Service (Porta 8082)
-
-#### Funcionalidades
-
-- **Query `products`**: Retorna todos os produtos
-- **Query `product(id: ID!)`**: Retorna um produto específico por ID
-- **Dados mock**: iPhone, MacBook, Nike, Coffee Maker
-- **Health Check**: Endpoint `/healthz` para monitoramento
-- **Logging estruturado**: Logs em JSON com contexto completo
-- **Federation Support**: Diretiva `@key(fields: "id")` e `__resolveReference`
-
-#### Como executar
-
-```bash
-# Localmente
-cd gofed/services/products
-go run main.go
-
-# Via Docker
-cd gofed/services/products
-docker build -t gofed-products .
-docker run -p 8082:8082 gofed-products
-
-# Via Makefile
+# Terminal 2: Products Service
 make run-products
+
+# Terminal 3: Gateway
+make run-gateway
 ```
 
-#### Testando o serviço
-
-1. **Acesse o GraphQL Playground**: http://localhost:8082/
-2. **Teste a query `products`**:
-   ```graphql
-   query {
-     products {
-       id
-       name
-       description
-       price
-       category
-     }
-   }
-   ```
-3. **Teste a query `product`**:
-   ```graphql
-   query {
-     product(id: "1") {
-       id
-       name
-       description
-       price
-       category
-     }
-   }
-   ```
-4. **Teste o Health Check**:
-   ```bash
-   curl http://localhost:8082/healthz
-   ```
-
-### Apollo Gateway (Porta 4000)
-
-#### Funcionalidades
-
-- **Federation**: Combina schemas dos serviços users e products
-- **Proxy**: Faz proxy para os serviços individuais
-- **GraphQL Playground**: Interface para testar queries federadas
-- **Configurável**: URLs dos serviços via variáveis de ambiente
-- **Docker Compose**: Integração com todos os serviços
-
-#### Como executar
+### Opção 3: Comandos Makefile
 
 ```bash
-# Localmente (com serviços rodando)
-cd gofed/gateway
-npm install
-npm start
+# Executar todos os serviços (instruções)
+make run-all
 
-# Via Docker
-cd gofed/gateway
-docker build -t gofed-gateway .
-docker run -p 4000:4000 gofed-gateway
+# Construir imagens Docker
+make docker-build
 
-# Via Docker Compose (todos os serviços)
-cd gofed
-docker-compose up
+# Subir com Docker Compose
+make docker-up
+
+# Parar Docker Compose
+make docker-down
 ```
 
-#### Testando o gateway
+## 🧪 Testando a Federation
 
-1. **Acesse o GraphQL Playground**: http://localhost:4000/
-2. **Teste queries federadas**:
-   ```graphql
-   query {
-     users {
-       id
-       name
-       email
-     }
-     products {
-       id
-       name
-       price
-     }
-   }
-   ```
-3. **Teste queries individuais**:
-   ```graphql
-   query {
-     user(id: "1") {
-       id
-       name
-     }
-     product(id: "1") {
-       id
-       name
-       price
-     }
-   }
-   ```
+### 1. Script de Testes Automatizado
 
-## Federation Support
+```bash
+# Executar todos os testes
+./scripts/test-queries.sh
+```
 
-Ambos os serviços estão preparados para federation com Apollo Gateway:
+### 2. Queries de Exemplo
 
-### Users Service
+#### Query Básica de Usuários
 
 ```graphql
-type User @key(fields: "id") {
-  id: ID!
-  name: String!
-  email: String!
+query {
+  users {
+    id
+    name
+    email
+  }
 }
 ```
 
-### Products Service
+#### Query Básica de Produtos
 
 ```graphql
-type Product @key(fields: "id") {
-  id: ID!
-  name: String!
-  description: String!
-  price: Float!
-  category: String!
+query {
+  products {
+    id
+    name
+    description
+    price
+    category
+  }
 }
 ```
+
+#### Query Federada - Produtos com Owner
+
+```graphql
+query {
+  products {
+    id
+    name
+    owner {
+      id
+      name
+      email
+    }
+  }
+}
+```
+
+#### Query Federada - Usuários e Produtos Juntos
+
+```graphql
+query {
+  users {
+    id
+    name
+  }
+  products {
+    id
+    name
+    owner {
+      id
+      name
+    }
+  }
+}
+```
+
+### 3. Testes com curl
+
+```bash
+# Query federada com owner
+curl -X POST http://localhost:4000/ \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ products { id name owner { id name email } } }"}'
+
+# Query complexa federada
+curl -X POST http://localhost:4000/ \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ users { id name } products { id name price category owner { id name } } }"}'
+```
+
+## 🔗 Endpoints
+
+| Serviço                | URL                             | Descrição            |
+| ---------------------- | ------------------------------- | -------------------- |
+| **Users Service**      | `http://localhost:8081/query`   | GraphQL endpoint     |
+| **Users Health**       | `http://localhost:8081/healthz` | Health check         |
+| **Products Service**   | `http://localhost:8082/query`   | GraphQL endpoint     |
+| **Products Health**    | `http://localhost:8082/healthz` | Health check         |
+| **Apollo Gateway**     | `http://localhost:4000/`        | Federation endpoint  |
+| **GraphQL Playground** | `http://localhost:4000/`        | Interface interativa |
+
+## 🔑 Federation Features
+
+### Diretivas @key Implementadas
+
+- **User**: `@key(fields: "id")` - Permite busca por ID
+- **Product**: `@key(fields: "id")` - Permite busca por ID
 
 ### \_\_resolveReference
 
-Cada serviço implementa a função `__resolveReference` que permite ao Apollo Gateway resolver referências federadas:
+- **User.\_\_resolveReference**: Resolve referências por `id`
+- **Product.\_\_resolveReference**: Resolve referências por `id`
 
-- **Users**: Resolve referências por `id` do usuário
-- **Products**: Resolve referências por `id` do produto
+### Queries Federadas Suportadas
 
-### Gateway Federation
+✅ **Busca direta por ID**
+✅ **Referências cruzadas entre serviços**
+✅ **Queries combinadas de múltiplos serviços**
+✅ **Resolução automática de entidades relacionadas**
 
-O Apollo Gateway combina os schemas e faz proxy para os serviços:
+## 📊 Apollo Studio
 
-- **Schema Federado**: Combina User e Product types
-- **Proxy Resolvers**: Encaminha queries para os serviços corretos
-- **Configuração**: URLs configuráveis via variáveis de ambiente
+Para análise avançada e debugging:
 
-## Endpoints
+1. Acesse: https://studio.apollographql.com/
+2. Conecte seu endpoint: `http://localhost:4000/`
+3. Explore o schema federado
+4. Analise performance e queries
 
-### Users Service
+## 🔧 Configuração
 
-- **GraphQL Playground**: http://localhost:8081/
-- **GraphQL Query**: http://localhost:8081/query
-- **Health Check**: http://localhost:8081/healthz
+### Variáveis de Ambiente
 
-### Products Service
+Copie `env.example` para `.env` e ajuste conforme necessário:
 
-- **GraphQL Playground**: http://localhost:8082/
-- **GraphQL Query**: http://localhost:8082/query
-- **Health Check**: http://localhost:8082/healthz
-
-### Apollo Gateway
-
-- **GraphQL Playground**: http://localhost:4000/
-- **GraphQL Query**: http://localhost:4000/
-
-## Logging
-
-O serviço utiliza logging estruturado em JSON com os seguintes campos:
-
-- `timestamp`: Timestamp ISO 8601
-- `level`: Nível do log (info, warn, error, fatal)
-- `message`: Mensagem do log
-- `service`: Nome do serviço
-- `version`: Versão do serviço
-- `method`: Método HTTP (para requisições)
-- `path`: Caminho da requisição
-- `status_code`: Código de status HTTP
-- `duration`: Duração da requisição
-
-## Variáveis de Ambiente
-
-```bash
+```env
 # Users Service
 USERS_SERVICE_PORT=8081
 USERS_SERVICE_HOST=localhost
@@ -300,6 +225,10 @@ GATEWAY_HOST=localhost
 USERS_SERVICE_URL=http://localhost:8081/query
 PRODUCTS_SERVICE_URL=http://localhost:8082/query
 
+# GraphQL
+GRAPHQL_PLAYGROUND_ENABLED=true
+GRAPHQL_INTROSPECTION_ENABLED=true
+
 # Logging
 LOG_LEVEL=info
 
@@ -308,26 +237,42 @@ FEDERATION_ENABLED=true
 FEDERATION_VERSION=2
 ```
 
-## Docker Compose
+## 📈 Próximos Passos
 
-Para executar todos os serviços juntos:
+- [ ] **Resoluções concorrentes** (WaitGroup, context.Context, channels)
+- [ ] **Cache e otimizações de performance**
+- [ ] **Novos serviços** (orders, reviews) que referenciam users/products
+- [ ] **Autenticação e autorização**
+- [ ] **Métricas e monitoring**
+- [ ] **Testes automatizados**
 
-```bash
-cd gofed
-docker-compose up
-```
+## 🏗️ Arquitetura
 
-Isso irá:
+![Arquitetura Gofed](docs/arquitecture.drawio)
 
-- Construir e executar o Users Service na porta 8081
-- Construir e executar o Products Service na porta 8082
-- Construir e executar o Apollo Gateway na porta 4000
-- Configurar a rede entre os serviços
-- Usar as variáveis de ambiente corretas para cada serviço
+### Componentes
 
-## Próximos passos
+1. **Frontend/Client**: Consome o GraphQL federado
+2. **Apollo Gateway**: Orquestra e combina schemas
+3. **Users Service**: Gerencia dados de usuários
+4. **Products Service**: Gerencia dados de produtos
+5. **Mock Data**: Dados de exemplo em memória
 
-- [ ] Adicionar resoluções concorrentes
-- [ ] Implementar cache e otimizações
-- [ ] Adicionar mais serviços (orders, reviews, etc.)
-- [ ] Implementar autenticação e autorização
+### Fluxo de Dados
+
+1. Cliente envia query para Apollo Gateway
+2. Gateway analisa e roteia para serviços apropriados
+3. Serviços processam e retornam dados
+4. Gateway combina resultados e retorna resposta unificada
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.

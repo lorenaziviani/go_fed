@@ -26,6 +26,7 @@ const typeDefs = gql`
     description: String!
     price: Float!
     category: String!
+    owner: User!
   }
 
   type Query {
@@ -61,7 +62,7 @@ const resolvers = {
       const response = await fetch(PRODUCTS_SERVICE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: '{ products { id name description price category } }' }),
+        body: JSON.stringify({ query: '{ products { id name description price category owner { id name email } } }' }),
       });
       const data = await response.json();
       return data.data.products;
@@ -70,7 +71,7 @@ const resolvers = {
       const response = await fetch(PRODUCTS_SERVICE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: `{ product(id: "${id}") { id name description price category } }` }),
+        body: JSON.stringify({ query: `{ product(id: "${id}") { id name description price category owner { id name email } } }` }),
       });
       const data = await response.json();
       return data.data.product;
@@ -93,7 +94,7 @@ const resolvers = {
       const response = await fetch(PRODUCTS_SERVICE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: `{ product(id: "${reference.id}") { id name description price category } }` }),
+        body: JSON.stringify({ query: `{ product(id: "${reference.id}") { id name description price category owner { id name email } } }` }),
       });
       const data = await response.json();
       return data.data.product;
@@ -120,6 +121,9 @@ async function startServer() {
   console.log(`   - products: ${PRODUCTS_SERVICE_URL}`);
   console.log('\n Federation is active! You can now query across services.');
   console.log('Federation keys enabled: User(id), Product(id)');
+  console.log('\n Example queries:');
+  console.log('  - products { id name owner { id name } }');
+  console.log('  - users { id name } products { id name owner { id name } }');
 }
 
 startServer().catch(console.error); 

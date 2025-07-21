@@ -8,7 +8,14 @@ type Product struct {
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 	Category    string  `json:"category"`
+	Owner       *User   `json:"owner"`
 }
 
 type Query struct {
+}
+
+type User struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
