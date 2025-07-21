@@ -7,6 +7,7 @@ O **Gofed** é uma aplicação demonstrativa que simula um ambiente federado com
 Demonstrar a implementação de **GraphQL Federation** com microsserviços em Go, incluindo:
 
 - ✅ **Resoluções concorrentes** com WaitGroup, context.Context, canais
+- ✅ **Benchmarks e race detection** para validação de performance e segurança
 - Simulação de problemas de performance mitigados com paralelismo e cache
 - Federation com Apollo Gateway e diretivas `@key`
 
@@ -19,6 +20,7 @@ Demonstrar a implementação de **GraphQL Federation** com microsserviços em Go
 - **Docker & Docker Compose**: Containerização e orquestração
 - **Federation v2.0**: Com diretivas `@key` para referências cruzadas
 - **Concurrency Patterns**: WaitGroup, Channels, Context
+- **Testing**: Race detection, Benchmarks, Unit tests
 
 ## 📁 Estrutura do Monorepo
 
@@ -255,6 +257,69 @@ func (r *Resolver) UsersByIds(ctx context.Context, ids []string) ([]*model.User,
 }
 ```
 
+## 📊 Benchmark e Race Detection
+
+### Comandos de Teste
+
+```bash
+# Race detection
+make test-race
+
+# Performance benchmarks
+make test-benchmark
+
+# Benchmarks detalhados
+make test-benchmark-detail
+
+# Todos os testes
+make test-all
+```
+
+### Resultados dos Benchmarks
+
+#### Performance Comparativa
+
+```
+BenchmarkSequentialUserResolution-8    2   505109980 ns/op    48 B/op    0 allocs/op
+BenchmarkConcurrentUserResolution-8    10  101074488 ns/op    2563 B/op  38 allocs/op
+```
+
+#### Análise de Performance
+
+- **Sequencial (5 usuários)**: ~505ms
+- **Concorrente (5 usuários)**: ~101ms
+- **Melhoria**: **5x mais rápido**
+- **Memory Overhead**: ~2.4KB vs 48B
+- **Allocations**: 37 vs 0
+
+#### Scalability por Tamanho
+
+- **Small (2 usuários)**: ~101ms, 1.3KB, 22 allocs
+- **Medium (8 usuários)**: ~101ms, 3.5KB, 50 allocs
+- **Large (20 usuários)**: ~101ms, 7.2KB, 99 allocs
+
+### Testes de Segurança
+
+✅ **Race Detection**: Nenhuma race condition detectada
+✅ **Timeout Handling**: Context timeout funcionando
+✅ **Cancellation**: Context cancellation funcionando
+✅ **Valid Data**: Dados válidos processados corretamente
+✅ **Invalid Data**: IDs inválidos tratados adequadamente
+✅ **Stress Test**: 50 goroutines simultâneas sem problemas
+
+### Script de Benchmark
+
+```bash
+./scripts/benchmark.sh
+```
+
+Executa automaticamente:
+
+- Race detection tests
+- Performance benchmarks
+- Unit tests
+- Análise detalhada de performance
+
 ## 📊 Apollo Studio
 
 Para análise avançada e debugging:
@@ -299,16 +364,18 @@ FEDERATION_VERSION=2
 # Testes e Desenvolvimento
 TEST_TIMEOUT=30s
 DEBUG_MODE=false
+BENCHMARK_ENABLED=true
+RACE_DETECTION_ENABLED=true
 ```
 
 ## 📈 Próximos Passos
 
 - [x] **Resoluções concorrentes** (WaitGroup, context.Context, channels) ✅
+- [x] **Benchmarks e race detection** (go test -race, go test -bench) ✅
 - [ ] **Cache e otimizações de performance**
 - [ ] **Novos serviços** (orders, reviews) que referenciam users/products
 - [ ] **Autenticação e autorização**
 - [ ] **Métricas e monitoring**
-- [ ] **Testes automatizados**
 
 ## 🏗️ Arquitetura
 
@@ -318,7 +385,7 @@ DEBUG_MODE=false
 
 1. **Frontend/Client**: Consome o GraphQL federado
 2. **Apollo Gateway**: Orquestra e combina schemas
-3. **Users Service**: Gerencia dados de usuários (com concorrência)
+3. **Users Service**: Gerencia dados de usuários (com concorrência e testes)
 4. **Products Service**: Gerencia dados de produtos
 5. **Mock Data**: Dados de exemplo em memória
 

@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram name="Gofed Architecture" id="gofed-arch">
-        <mxGraphModel dx="2106" dy="1442" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="2106" dy="1327" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -10,8 +10,8 @@
                 <mxCell id="gateway" value="Apollo Gateway&lt;br&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;Port: 4000&lt;br&gt;Federation v2.0&lt;br&gt;@key directives&lt;br&gt;__resolveReference&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;" parent="1" vertex="1">
                     <mxGeometry x="240" y="30" width="160" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="users" value="Users Service&lt;br&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;Port: 8081&lt;br&gt;GraphQL + gqlgen&lt;br&gt;Health Check&lt;br&gt;Concurrent Resolvers&lt;br&gt;WaitGroup + Channels&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="720" y="20" width="140" height="100" as="geometry"/>
+                <mxCell id="users" value="Users Service&lt;br&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;Port: 8081&lt;br&gt;GraphQL + gqlgen&lt;br&gt;Health Check&lt;br&gt;Concurrent Resolvers&lt;br&gt;WaitGroup + Channels&lt;br&gt;Benchmarks + Race Tests&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="720" y="20" width="140" height="120" as="geometry"/>
                 </mxCell>
                 <mxCell id="products" value="Products Service&lt;br&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;Port: 8082&lt;br&gt;GraphQL + gqlgen&lt;br&gt;Health Check&lt;br&gt;Owner Relations&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" parent="1" vertex="1">
                     <mxGeometry x="435" y="270" width="140" height="80" as="geometry"/>
@@ -66,8 +66,16 @@
                 <mxCell id="status3" value="&amp;nbsp;Running" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;fontStyle=1;" parent="1" vertex="1">
                     <mxGeometry x="420" y="42" width="50" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="performance" value="Performance&lt;br&gt;• &lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;Concurrent: ~0.16s&lt;br&gt;• Sequential: ~0.45s&lt;br&gt;• 8 users parallel&lt;br&gt;• 5s timeout&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                <mxCell id="performance" value="Performance&lt;br&gt;• &lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;Concurrent: ~101ms&lt;br&gt;• Sequential: ~505ms&lt;br&gt;• 5x faster&lt;br&gt;• Race-free&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" parent="1" vertex="1">
                     <mxGeometry x="640" y="400" width="140" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="benchmark" value="Benchmark &amp;amp; Tests&lt;br&gt;• &lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;color: rgb(105, 105, 105);&quot;&gt;go test -race&lt;br&gt;• go test -bench&lt;br&gt;• Unit tests&lt;br&gt;• Stress tests&lt;br&gt;• Performance analysis&lt;/font&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="890" y="-190" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn8" value="Benchmark Tests" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;strokeWidth=2;dashed=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" parent="1" source="users" target="benchmark" edge="1">
+                    <mxGeometry x="0.4815" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
                 </mxCell>
             </root>
         </mxGraphModel>

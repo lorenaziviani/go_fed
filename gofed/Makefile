@@ -67,6 +67,29 @@ test-performance:
 	duration=$$(echo "$$end_time - $$start_time" | bc); \
 	echo "Duration: $${duration}s"
 
+test-race:
+	@echo "Running race detection tests..."
+	cd services/users && go test -race ./...
+
+test-benchmark:
+	@echo "Running performance benchmarks..."
+	cd services/users && go test -bench . -benchmem ./graph/
+
+test-benchmark-detail:
+	@echo "Running detailed benchmarks..."
+	./scripts/benchmark.sh
+
+test-all:
+	@echo "Running all tests..."
+	@echo "1. Race detection..."
+	@$(MAKE) test-race
+	@echo ""
+	@echo "2. Performance benchmarks..."
+	@$(MAKE) test-benchmark
+	@echo ""
+	@echo "3. Federation tests..."
+	@$(MAKE) test-queries
+
 health-check:
 	@echo "Checking service health..."
 	@echo "Users service:"
