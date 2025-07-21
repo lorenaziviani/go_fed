@@ -91,3 +91,39 @@ query GetComplexData {
     }
   }
 }
+
+# 8. Concurrent query - multiple users by IDs (WaitGroup + Channels)
+query GetUsersByIds {
+  usersByIds(ids: ["1", "2", "3", "4", "5"]) {
+    id
+    name
+    email
+  }
+}
+
+# 9. Concurrent query - performance test
+query GetManyUsers {
+  usersByIds(ids: ["1", "2", "3", "4", "5", "6", "7", "8"]) {
+    id
+    name
+    email
+  }
+}
+
+# 10. Federated query with concurrent owners
+query GetProductsWithConcurrentOwners {
+  products {
+    id
+    name
+    owner {
+      id
+      name
+      email
+    }
+  }
+  usersByIds(ids: ["1", "2", "3"]) {
+    id
+    name
+    email
+  }
+}

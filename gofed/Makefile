@@ -45,6 +45,28 @@ test-complex:
 		-H "Content-Type: application/json" \
 		-d '{"query": "{ users { id name } products { id name price category owner { id name } } }"}' | jq .
 
+test-concurrent:
+	@echo "Testing concurrent user resolution..."
+	@echo "Query: usersByIds(ids: [\"1\", \"2\", \"3\", \"4\", \"5\"])"
+	@start_time=$$(date +%s.%N); \
+	curl -s -X POST http://localhost:4000/ \
+		-H "Content-Type: application/json" \
+		-d '{"query": "{ usersByIds(ids: [\"1\", \"2\", \"3\", \"4\", \"5\"]) { id name email } }"}' | jq .; \
+	end_time=$$(date +%s.%N); \
+	duration=$$(echo "$$end_time - $$start_time" | bc); \
+	echo "Duration: $${duration}s"
+
+test-performance:
+	@echo "Testing performance with 8 concurrent users..."
+	@echo "Query: usersByIds(ids: [\"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\"])"
+	@start_time=$$(date +%s.%N); \
+	curl -s -X POST http://localhost:4000/ \
+		-H "Content-Type: application/json" \
+		-d '{"query": "{ usersByIds(ids: [\"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\"]) { id name email } }"}' | jq .; \
+	end_time=$$(date +%s.%N); \
+	duration=$$(echo "$$end_time - $$start_time" | bc); \
+	echo "Duration: $${duration}s"
+
 health-check:
 	@echo "Checking service health..."
 	@echo "Users service:"

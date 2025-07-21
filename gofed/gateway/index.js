@@ -32,6 +32,7 @@ const typeDefs = gql`
   type Query {
     users: [User!]!
     user(id: ID!): User
+    usersByIds(ids: [ID!]!): [User!]!
     products: [Product!]!
     product(id: ID!): Product
   }
@@ -57,6 +58,17 @@ const resolvers = {
       });
       const data = await response.json();
       return data.data.user;
+    },
+    usersByIds: async (_, { ids }) => {
+      const response = await fetch(USERS_SERVICE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          query: `{ usersByIds(ids: [${ids.map(id => `"${id}"`).join(', ')}]) { id name email } }` 
+        }),
+      });
+      const data = await response.json();
+      return data.data.usersByIds;
     },
     products: async () => {
       const response = await fetch(PRODUCTS_SERVICE_URL, {
@@ -124,6 +136,7 @@ async function startServer() {
   console.log('\n Example queries:');
   console.log('  - products { id name owner { id name } }');
   console.log('  - users { id name } products { id name owner { id name } }');
+  console.log('  - usersByIds(ids: ["1", "2", "3"]) { id name email }');
 }
 
 startServer().catch(console.error); 

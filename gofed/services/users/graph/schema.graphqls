@@ -7,4 +7,5 @@ type User {
 type Query {
   users: [User!]!
   user(id: ID!): User
+  usersByIds(ids: [ID!]!): [User!]!
 }
