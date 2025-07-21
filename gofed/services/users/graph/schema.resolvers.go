@@ -6,7 +6,6 @@ package graph
 
 import (
 	"context"
-
 	"users/graph/model"
 )
 
@@ -22,35 +21,6 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 			return u, nil
 		}
 	}
-	return nil, nil
-}
-
-// __resolveReference is the resolver for the __resolveReference field.
-func (r *Resolver) __resolveReference(ctx context.Context, obj interface{}) (interface{}, error) {
-	// Extrair o ID da referência
-	var id string
-	switch v := obj.(type) {
-	case map[string]interface{}:
-		if idVal, ok := v["id"]; ok {
-			if idStr, ok := idVal.(string); ok {
-				id = idStr
-			}
-		}
-	case *model.User:
-		id = v.ID
-	}
-
-	if id == "" {
-		return nil, nil
-	}
-
-	// Buscar o usuário pelo ID
-	for _, user := range users {
-		if user.ID == id {
-			return user, nil
-		}
-	}
-
 	return nil, nil
 }
 

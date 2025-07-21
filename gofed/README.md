@@ -28,6 +28,7 @@ gofed/
 ├── README.md
 ├── Makefile
 ├── env.example
+├── docker-compose.yml
 └── go.work
 ```
 
@@ -147,6 +148,67 @@ make run-products
    curl http://localhost:8082/healthz
    ```
 
+### Apollo Gateway (Porta 4000)
+
+#### Funcionalidades
+
+- **Federation**: Combina schemas dos serviços users e products
+- **Proxy**: Faz proxy para os serviços individuais
+- **GraphQL Playground**: Interface para testar queries federadas
+- **Configurável**: URLs dos serviços via variáveis de ambiente
+- **Docker Compose**: Integração com todos os serviços
+
+#### Como executar
+
+```bash
+# Localmente (com serviços rodando)
+cd gofed/gateway
+npm install
+npm start
+
+# Via Docker
+cd gofed/gateway
+docker build -t gofed-gateway .
+docker run -p 4000:4000 gofed-gateway
+
+# Via Docker Compose (todos os serviços)
+cd gofed
+docker-compose up
+```
+
+#### Testando o gateway
+
+1. **Acesse o GraphQL Playground**: http://localhost:4000/
+2. **Teste queries federadas**:
+   ```graphql
+   query {
+     users {
+       id
+       name
+       email
+     }
+     products {
+       id
+       name
+       price
+     }
+   }
+   ```
+3. **Teste queries individuais**:
+   ```graphql
+   query {
+     user(id: "1") {
+       id
+       name
+     }
+     product(id: "1") {
+       id
+       name
+       price
+     }
+   }
+   ```
+
 ## Federation Support
 
 Ambos os serviços estão preparados para federation com Apollo Gateway:
@@ -180,6 +242,14 @@ Cada serviço implementa a função `__resolveReference` que permite ao Apollo G
 - **Users**: Resolve referências por `id` do usuário
 - **Products**: Resolve referências por `id` do produto
 
+### Gateway Federation
+
+O Apollo Gateway combina os schemas e faz proxy para os serviços:
+
+- **Schema Federado**: Combina User e Product types
+- **Proxy Resolvers**: Encaminha queries para os serviços corretos
+- **Configuração**: URLs configuráveis via variáveis de ambiente
+
 ## Endpoints
 
 ### Users Service
@@ -193,6 +263,11 @@ Cada serviço implementa a função `__resolveReference` que permite ao Apollo G
 - **GraphQL Playground**: http://localhost:8082/
 - **GraphQL Query**: http://localhost:8082/query
 - **Health Check**: http://localhost:8082/healthz
+
+### Apollo Gateway
+
+- **GraphQL Playground**: http://localhost:4000/
+- **GraphQL Query**: http://localhost:4000/
 
 ## Logging
 
@@ -211,13 +286,48 @@ O serviço utiliza logging estruturado em JSON com os seguintes campos:
 ## Variáveis de Ambiente
 
 ```bash
-# Nível de log (debug, info, warn, error, fatal)
+# Users Service
+USERS_SERVICE_PORT=8081
+USERS_SERVICE_HOST=localhost
+
+# Products Service
+PRODUCTS_SERVICE_PORT=8082
+PRODUCTS_SERVICE_HOST=localhost
+
+# Gateway
+GATEWAY_PORT=4000
+GATEWAY_HOST=localhost
+USERS_SERVICE_URL=http://localhost:8081/query
+PRODUCTS_SERVICE_URL=http://localhost:8082/query
+
+# Logging
 LOG_LEVEL=info
+
+# Federation
+FEDERATION_ENABLED=true
+FEDERATION_VERSION=2
 ```
+
+## Docker Compose
+
+Para executar todos os serviços juntos:
+
+```bash
+cd gofed
+docker-compose up
+```
+
+Isso irá:
+
+- Construir e executar o Users Service na porta 8081
+- Construir e executar o Products Service na porta 8082
+- Construir e executar o Apollo Gateway na porta 4000
+- Configurar a rede entre os serviços
+- Usar as variáveis de ambiente corretas para cada serviço
 
 ## Próximos passos
 
-- [ ] Configurar Apollo Gateway
-- [ ] Implementar federação GraphQL
 - [ ] Adicionar resoluções concorrentes
 - [ ] Implementar cache e otimizações
+- [ ] Adicionar mais serviços (orders, reviews, etc.)
+- [ ] Implementar autenticação e autorização

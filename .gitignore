@@ -1,2 +1,4 @@
 .gitconfig*
 git-switch.sh
+
+node_modules/
