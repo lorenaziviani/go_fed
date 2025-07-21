@@ -170,84 +170,17 @@ make down
 
 ### Diagrama de Alto Nível (C4 Level 1)
 
-```mermaid
-graph TB
-    Client[Client Application] --> Gateway[Apollo Federation Gateway]
-    Gateway --> Users[Users Service<br/>Cache + Metrics]
-    Gateway --> Products[Products Service<br/>Semaphore + Metrics]
-
-    Users --> Cache[User Cache<br/>TTL: 5m]
-    Products --> Semaphore[Custom Semaphore<br/>Max: 3 concurrent]
-
-    Users --> Prometheus[Prometheus Metrics]
-    Products --> Prometheus
-
-    Gateway --> Studio[Apollo Studio<br/>GraphQL Playground]
-
-    subgraph "Observability"
-        Prometheus
-        Studio
-        Tracing[Request Tracing<br/>X-Trace-ID]
-    end
-```
+![Architecture](.gitassets/c4-1.png)
 
 ### Diagrama de Componentes (C4 Level 2)
 
-```mermaid
-graph TB
-    subgraph "Client Layer"
-        Client[Client Application]
-    end
-
-    subgraph "Gateway Layer"
-        Gateway[Apollo Federation Gateway<br/>Port 4000]
-    end
-
-    subgraph "Service Layer"
-        Users[Users Service<br/>Port 8081<br/>Cache + Metrics + Tracing]
-        Products[Products Service<br/>Port 8082<br/>Semaphore + Metrics + Tracing]
-    end
-
-    subgraph "Storage & Control"
-        Cache[User Cache<br/>Race Condition Demo]
-        Semaphore[Custom Semaphore<br/>Backpressure Control]
-    end
-
-    subgraph "Observability Layer"
-        Prometheus[Prometheus Metrics<br/>/metrics endpoints]
-        Tracing[Request Tracing<br/>X-Trace-ID]
-        Studio[Apollo Studio<br/>Performance Analysis]
-    end
-
-    Client --> Gateway
-    Gateway --> Users
-    Gateway --> Products
-    Users --> Cache
-    Products --> Semaphore
-    Users --> Prometheus
-    Products --> Prometheus
-    Gateway --> Studio
-```
-
----
+![Architecture](.gitassets/c4-2.png)
 
 ## ⚡ Concurrency Patterns & Race Conditions
 
 ### 🔍 Race Conditions - O Problema
 
-```mermaid
-sequenceDiagram
-    participant G1 as Goroutine 1
-    participant Cache as Unsafe Cache
-    participant G2 as Goroutine 2
-
-    G1->>Cache: Get User "123"
-    G2->>Cache: Get User "123"
-    Note over Cache: Cache miss - both read nil
-    G1->>Cache: Set User "123" = UserA
-    G2->>Cache: Set User "123" = UserB
-    Note over Cache: UserB overwrites UserA!
-```
+![Architecture](.gitassets/race-condition-problem.png)
 
 **Código Problemático:**
 
@@ -268,20 +201,7 @@ func (c *UnsafeCache) SetUser(id string, user *User) {
 
 ### 🛡️ Soluções Implementadas
 
-```mermaid
-sequenceDiagram
-    participant G1 as Goroutine 1
-    participant Cache as Safe Cache
-    participant G2 as Goroutine 2
-
-    G1->>Cache: Get User "123" (RLock)
-    Cache-->>G1: UserA
-    G1->>Cache: Release RLock
-    G2->>Cache: Get User "123" (RLock)
-    Cache-->>G2: UserA
-    G2->>Cache: Release RLock
-    Note over Cache: Thread-safe read access
-```
+![Architecture](.gitassets/race-condition-solution.png)
 
 **Código Seguro:**
 
@@ -310,15 +230,7 @@ func (c *UserCache) GetUserSafe(id string) (*User, bool) {
 
 ## 🚦 Semáforo Customizado - Controle de Backpressure
 
-```mermaid
-graph LR
-    A[Request] --> B{Semaphore<br/>Available?}
-    B -->|Yes| C[Acquire Permit]
-    B -->|No| D[Wait/Timeout]
-    C --> E[Process Request]
-    E --> F[Release Permit]
-    D --> G[Return Error]
-```
+![Architecture](.gitassets/semaphore.png)
 
 **Implementação:**
 
@@ -350,42 +262,11 @@ func (s *Semaphore) Acquire(ctx context.Context) error {
 
 ### Paralelismo - Múltiplos Usuários Simultâneos
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Gateway
-    participant Users
-    participant Products
-
-    Client->>Gateway: Query: users + products
-    Gateway->>Users: Get Users (parallel)
-    Gateway->>Products: Get Products (parallel)
-    Users-->>Gateway: Users Data
-    Products-->>Gateway: Products Data
-    Gateway-->>Client: Combined Result
-    Note over Client,Gateway: Total: ~400ms (vs 1000ms sequential)
-```
+![Architecture](.gitassets/multiple-users.png)
 
 ### Concorrência - Semáforo com Backpressure
 
-```mermaid
-sequenceDiagram
-    participant R1 as Request 1
-    participant R2 as Request 2
-    participant R3 as Request 3
-    participant R4 as Request 4
-    participant Sem as Semaphore
-
-    R1->>Sem: Acquire (Max: 3)
-    Sem-->>R1: Permit granted
-    R2->>Sem: Acquire
-    Sem-->>R2: Permit granted
-    R3->>Sem: Acquire
-    Sem-->>R3: Permit granted
-    R4->>Sem: Acquire
-    Sem-->>R4: Wait/Timeout
-    Note over Sem: Backpressure control
-```
+![Architecture](.gitassets/semaphore-2.png)
 
 ---
 
@@ -405,18 +286,7 @@ BenchmarkGetProductsSemaphore-8  250    400ms    0 B/op    0 allocs/op
 
 ### 📈 Gráficos de Performance
 
-```mermaid
-graph LR
-    subgraph "Users Service"
-        A[Sequential: 500ms] --> B[Parallel: 100ms]
-        B --> C[5x Faster]
-    end
-
-    subgraph "Products Service"
-        D[Sequential: 1000ms] --> E[Semaphore: 400ms]
-        E --> F[2.5x Faster]
-    end
-```
+![Architecture](.gitassets/services-performance.png)
 
 ### 🎯 Métricas de Performance
 
@@ -430,27 +300,7 @@ graph LR
 
 ### 🔍 Análise de Performance
 
-```mermaid
-graph TB
-    subgraph "Antes da Otimização"
-        A1[Sequential Processing]
-        A2[No Cache]
-        A3[No Backpressure]
-        A4[1000ms Total]
-    end
-
-    subgraph "Depois da Otimização"
-        B1[Parallel Processing]
-        B2[Thread-Safe Cache]
-        B3[Custom Semaphore]
-        B4[400ms Total]
-    end
-
-    A1 --> B1
-    A2 --> B2
-    A3 --> B3
-    A4 --> B4
-```
+![Architecture](.gitassets/performance.png)
 
 ---
 
@@ -458,32 +308,7 @@ graph TB
 
 ### 🚀 Apollo Studio Interface
 
-```mermaid
-graph TB
-    subgraph "Apollo Studio Features"
-        A[Schema Explorer]
-        B[Query Builder]
-        C[Performance Analysis]
-        D[Request Tracing]
-        E[Error Tracking]
-        F[Documentation]
-    end
-
-    subgraph "GraphQL Federation"
-        G[Gateway Schema]
-        H[Users Service]
-        I[Products Service]
-    end
-
-    A --> G
-    B --> G
-    C --> G
-    D --> G
-    E --> G
-    F --> G
-    G --> H
-    G --> I
-```
+![Architecture](.gitassets/apollo.png)
 
 ### Acessando o Apollo Studio
 
@@ -511,24 +336,7 @@ query GetUsersAndProducts {
 
 ### Performance Analysis no Studio
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Studio
-    participant Gateway
-    participant Users
-    participant Products
-
-    Client->>Studio: Execute Query
-    Studio->>Gateway: Forward Query
-    Gateway->>Users: Resolve users field
-    Gateway->>Products: Resolve products field
-    Users-->>Gateway: Users Data
-    Products-->>Gateway: Products Data
-    Gateway-->>Studio: Combined Result
-    Studio-->>Client: Performance Analysis
-    Note over Studio: Shows timing, errors, caching
-```
+![Architecture](.gitassets/performance-studio.png)
 
 ---
 
